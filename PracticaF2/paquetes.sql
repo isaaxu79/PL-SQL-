@@ -6,8 +6,8 @@ AS
                             x_err_msg OUT VARCHAR2, 
                             x_err_code OUT NUMBER) RETURN lista_type;
                             
-    PROCEDURE create_table(i_instrn VARCHAR2, 
-                            table_name VARCHAR2, 
+    PROCEDURE create_table(p_instrn VARCHAR2, 
+                            p_table_name VARCHAR2, 
                             x_err_msg OUT VARCHAR2, 
                             x_err_code OUT NUMBER);
                             
@@ -38,95 +38,93 @@ END;
 CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
     FUNCTION separate_words(p_word VARCHAR2, 
                             p_key VARCHAR2, 
-                            p_err_msg OUT VARCHAR2, 
-                            p_err_code OUT NUMBER) 
+                            x_err_msg OUT VARCHAR2, 
+                            x_err_code OUT NUMBER) 
                             RETURN lista_type IS
-        tokens lista_type;
+        i_tokens lista_type;
         i_pos NUMBER:=1;
         i_cont_key NUMBER:= LENGTH(p_word)-LENGTH(REPLACE(p_word,p_key));
     BEGIN
-        tokens :=lista_type();
-        tokens.extend;
-        tokens(1):= SUBSTR(p_word,0,INSTR(p_word,p_key,1,1)-1);
-        tokens.extend;
+        i_tokens :=lista_type();
+        i_tokens.extend;
+        i_tokens(1):= SUBSTR(p_word,0,INSTR(p_word,p_key,1,1)-1);
+        i_tokens.extend;
         
         FOR inc IN 1..i_cont_key-1 LOOP
             i_pos:=i_pos+1;
-            tokens(i_pos):= SUBSTR(
+            i_tokens(i_pos):= SUBSTR(
                                     p_word,
                                     INSTR(p_word,p_key,1,inc)+1,
                                     INSTR(p_word,p_key,1,inc+1)-INSTR(p_word,p_key,1,inc)-1);
-            tokens.extend;
+            i_tokens.extend;
         END LOOP;
         
-        tokens(i_pos+1):=SUBSTR(p_word,INSTR(p_word,p_key,1,i_cont_key)+1,length(p_word)-INSTR(p_word,p_key,1,i_cont_key));
-        p_err_msg := 'Sin errores';
-        p_err_code := 1;
-        RETURN tokens;
+        i_tokens(i_pos+1):=SUBSTR(p_word,INSTR(p_word,p_key,1,i_cont_key)+1,length(p_word)-INSTR(p_word,p_key,1,i_cont_key));
+        x_err_msg := 'Sin errores';
+        x_err_code := 1;
+        RETURN i_tokens;
     EXCEPTION
         WHEN OTHERS THEN
-            p_err_msg := 'Error al separar las palabras';
-            p_err_code := -1;
-            RETURN tokens;
+            x_err_msg := 'Error al separar las palabras';
+            x_err_code := -1;
+            RETURN i_tokens;
     END;
     
-    PROCEDURE create_table(i_instrn VARCHAR2,
-                            table_name VARCHAR2,
-                            p_err_msg OUT VARCHAR2, 
-                            p_err_code OUT NUMBER) 
+    PROCEDURE create_table(p_instrn VARCHAR2, 
+                            p_table_name VARCHAR2, 
+                            x_err_msg OUT VARCHAR2, 
+                            x_err_code OUT NUMBER) 
     IS
         i_headers_with_type lista_type;
         i_temp_h lista_type;
-        i_err_msg VARCHAR2(100);
-        i_err_code NUMBER;
         cursor_name INTEGER;
-        rows_processed INTEGER;
-        i_sql_query VARCHAR2(500):='CREATE TABLE ' || table_name || '(';
+        i_sql_query VARCHAR2(500):='CREATE TABLE ' || p_table_name || '(';
     BEGIN
-        i_headers_with_type := separate_words(i_instrn,'|',i_err_msg,i_err_code);
-        IF i_err_code > 0 then
+        i_headers_with_type := separate_words(p_instrn,'|',x_err_msg,x_err_code);
+        IF x_err_code > 0 then
             FOR i IN 1..i_headers_with_type.LAST LOOP
-                i_temp_h := separate_words(i_headers_with_type(i),'/',i_err_msg,i_err_code);
-                IF i_err_code > 0 AND i_temp_h.LAST = 2 THEN
+                i_temp_h := separate_words(i_headers_with_type(i),'/',x_err_msg,x_err_code);
+                IF x_err_code > 0 AND i_temp_h.LAST = 2 THEN
                     IF i = i_headers_with_type.LAST THEN
                         i_sql_query := i_sql_query || i_temp_h(1)||' '|| i_temp_h(2) || ' NOT NULL)';
                     ELSE
                         i_sql_query := i_sql_query || i_temp_h(1)||' '|| i_temp_h(2) || ' NOT NULL, ';
                     END IF;
-                    p_err_code :=1;
+                    x_err_code :=1;
                 ELSE
-                    p_err_msg := 'Error Al Crear la tabla';
-                    p_err_code := -1;
+                    x_err_msg := 'Error Al Crear la tabla';
+                    x_err_code := -1;
                     EXIT;
                 END IF;
             END LOOP;
-            IF p_err_code > 0 THEN
+            IF x_err_code > 0 THEN
                 DBMS_OUTPUT.PUT_LINE(i_sql_query);
-                cursor_name := dbms_sql.open_cursor;
+                EXECUTE IMMEDIATE i_sql_query;
+                /*cursor_name := dbms_sql.open_cursor;
                 DBMS_SQL.PARSE(cursor_name, i_sql_query,
                               DBMS_SQL.NATIVE);
-                rows_processed := DBMS_SQL.EXECUTE(cursor_name);
-                DBMS_SQL.CLOSE_CURSOR(cursor_name);
+                DBMS_SQL.EXECUTE(cursor_name);
+                DBMS_SQL.CLOSE_CURSOR(cursor_name);*/
                 EXECUTE IMMEDIATE 'CREATE TABLE xxeks_load_fail(file_name VARCHAR2(200), n_row NUMBER, description VARCHAR2(200))';
                 DBMS_OUTPUT.PUT_LINE('TABLA CREADA');
             END IF;
         else
-            p_err_msg := 'Error Al Crear la tabla';
-            p_err_code := -1;
+            x_err_msg := 'Error Al Crear la tabla';
+            x_err_code := -1;
         end if;
     EXCEPTION
         WHEN OTHERS THEN
-            p_err_code := 3;
+            x_err_code := 3;
             DBMS_SQL.CLOSE_CURSOR(cursor_name);
             DBMS_OUTPUT.PUT_LINE('tabla existente' );
-            p_err_msg := 'Error Al Crear la tabla';
+            x_err_msg := 'Error Al Crear la tabla';
     END;
     
-    FUNCTION get_headers_or_type(i_instrn VARCHAR2, 
-                        ncols OUT NUMBER, 
-                        vars NUMBER,
-                        p_err_msg OUT VARCHAR2, 
-                        p_err_code OUT NUMBER) RETURN lista_type
+    FUNCTION get_headers_or_type(p_instrn VARCHAR2, 
+                                p_ncols OUT NUMBER, 
+                                p_vars NUMBER, 
+                                x_err_msg OUT VARCHAR2, 
+                                x_err_code OUT NUMBER) RETURN lista_type
     IS
         i_head lista_type;
         i_hs lista_type;
@@ -134,22 +132,22 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
         i_null BOOLEAN:=FALSE;
     BEGIN
         i_heads := lista_type();
-        ncols :=0; 
-        i_head := separate_words(i_instrn,'|',p_err_msg, p_err_code);
-        IF p_err_code >= 0 then
+        p_ncols :=0; 
+        i_head := separate_words(p_instrn,'|',x_err_msg, x_err_code);
+        IF x_err_code >= 0 then
             FOR i IN 1..i_head.LAST LOOP
-                IF p_err_code >= 0 then
-                    i_hs := separate_words(i_head(i),'/',p_err_msg, p_err_code);
+                IF x_err_code >= 0 then
+                    i_hs := separate_words(i_head(i),'/',x_err_msg, x_err_code);
                     i_heads.extend;
-                    i_heads(i):= i_hs(vars);
-                    ncols := ncols +1;
+                    i_heads(i):= i_hs(p_vars);
+                    p_ncols := p_ncols +1;
                 END IF;
             END LOOP;
         END IF;
-        IF p_err_code < 0 then
+        IF x_err_code < 0 then
             DBMS_OUTPUT.PUT_LINE('error');
-            p_err_code :=-1;
-            ncols := 0;
+            x_err_code :=-1;
+            p_ncols := 0;
             i_heads.extend;
             i_heads(1):='sin';
             RETURN i_heads;
@@ -161,14 +159,14 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
     END;
     
     PROCEDURE insert_row(p_word VARCHAR2, 
-                        headers lista_type, 
-                        tab_name VARCHAR2,
-                        i_file VARCHAR2,
-                        i_cols NUMBER, 
-                        p_err_msg OUT VARCHAR2, 
-                        p_err_code OUT NUMBER,
-                        idx_col NUMBER,
-                        types_data lista_type)
+                        p_headers lista_type, 
+                        p_tab_name VARCHAR2,
+                        p_file VARCHAR2,
+                        p_cols NUMBER, 
+                        x_err_msg OUT VARCHAR2, 
+                        x_err_code OUT NUMBER,
+                        p_idx_col NUMBER,
+                        p_types_data lista_type)
     IS
         i_vals lista_type;
         i_missing lista_type;
@@ -183,19 +181,19 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
         rows_processed INTEGER;
     BEGIN
         i_missing := lista_type();
-        i_vals := separate_words(p_word,'|',p_err_msg,p_err_code);
-        IF p_err_code > 0 THEN
+        i_vals := separate_words(p_word,'|',x_err_msg,x_err_code);
+        IF x_err_code > 0 THEN
             FOR i IN 1..i_vals.LAST LOOP
                 IF i_vals(i) IS NOT NULL THEN
                     IF i = i_vals.LAST THEN
                         
-                        IF types_data(i) = 'NUMBER' THEN
+                        IF p_types_data(i) = 'NUMBER' THEN
                             i_values  := i_values || i_vals(i) || ')';
                         ELSE
                             i_values  := i_values || '''' || i_vals(i) || ''')';
                         END IF;
                     ELSE
-                        IF types_data(i) = 'NUMBER' THEN
+                        IF p_types_data(i) = 'NUMBER' THEN
                             i_values  := i_values || i_vals(i) || ',';
                         ELSE
                             i_values  := i_values || '''' || i_vals(i) || ''',';
@@ -203,7 +201,7 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
                     END IF;
                 ELSE
                     i_missing.extend;
-                    i_missing(i_cont):= headers(i);
+                    i_missing(i_cont):= p_headers(i);
                     i_mis := TRUE;
                     i_cont := i_cont+1;
                 END IF;
@@ -212,19 +210,19 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
                 FOR x IN 1..i_missing.LAST LOOP
                     i_err_value := i_err_value || '|' || i_missing(x);
                 END LOOP;
-                i_query_err:= i_query_err || '''' || i_file || ''', ' || idx_col || ', ''' || i_err_value || ''')';
+                i_query_err:= i_query_err || '''' || p_file || ''', ' || p_idx_col || ', ''' || i_err_value || ''')';
                 i_sql_query:= i_sql_query || 'xxeks_load_fail (file_name,n_row,description) VALUES' || i_query_err;
                 DBMS_OUTPUT.PUT_LINE(i_sql_query);
                 EXECUTE IMMEDIATE i_sql_query;  
             ELSE
-                FOR ix IN 1..headers.LAST LOOP
-                    IF ix = headers.LAST THEN
-                        i_head := i_head || headers(ix) || ')';
+                FOR ix IN 1..p_headers.LAST LOOP
+                    IF ix = p_headers.LAST THEN
+                        i_head := i_head || p_headers(ix) || ')';
                     ELSE
-                        i_head := i_head || headers(ix) || ', ';
+                        i_head := i_head || p_headers(ix) || ', ';
                     END IF;
                 END LOOP;
-                i_sql_query := i_sql_query || tab_name || ' ' || i_head ||' VALUES ' || i_values;
+                i_sql_query := i_sql_query || p_tab_name || ' ' || i_head ||' VALUES ' || i_values;
                 DBMS_OUTPUT.PUT_LINE(i_sql_query);
                 
                 EXECUTE IMMEDIATE i_sql_query;
@@ -235,16 +233,16 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
         WHEN OTHERS 
             THEN DBMS_OUTPUT.PUT_LINE('ERROR');
                 --DBMS_SQL.CLOSE_CURSOR(curso);
-                p_err_code := -1;
-                p_err_msg := 'error al insertar los datos';
+                x_err_code := -1;
+                x_err_msg := 'error al insertar los datos';
     END;
     
     PROCEDURE print_report(p_title VARCHAR2,
                                 p_heads lista_type,
                                 p_num_col NUMBER, 
                                 p_name_table VARCHAR2, 
-                                xx_err_msg OUT VARCHAR2, 
-                                xx_err_code OUT NUMBER)
+                                x_err_msg OUT VARCHAR2, 
+                                x_err_code OUT NUMBER)
     IS
         cursor_name INTEGER;
         rows_processed INTEGER;

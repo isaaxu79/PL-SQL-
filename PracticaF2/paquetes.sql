@@ -177,8 +177,6 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
         i_head VARCHAR2(500):='(';
         i_cont NUMBER := 1;
         i_query_err VARCHAR2(500):='(';
-        curso INTEGER;
-        rows_processed INTEGER;
     BEGIN
         i_missing := lista_type();
         i_vals := separate_words(p_word,'|',x_err_msg,x_err_code);
@@ -223,7 +221,6 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
                     END IF;
                 END LOOP;
                 i_sql_query := i_sql_query || p_tab_name || ' ' || i_head ||' VALUES ' || i_values;
-                DBMS_OUTPUT.PUT_LINE(i_sql_query);
                 
                 EXECUTE IMMEDIATE i_sql_query;
                 
@@ -244,13 +241,13 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
                                 x_err_msg OUT VARCHAR2, 
                                 x_err_code OUT NUMBER)
     IS
-        cursor_name INTEGER;
-        rows_processed INTEGER;
-        sql_str VARCHAR2(255);
-        col_cnt INTEGER;
-        rec_tab DBMS_SQL.DESC_TAB;
-        varvar varchar2(500);
+        i_cursor INTEGER;
+        i_sql_str VARCHAR2(255);
+        i_col_cnt INTEGER;
+        i_rec_tab DBMS_SQL.DESC_TAB;
+        i_varvar varchar2(500);
         i_headers varchar2(500):='';
+        i_rows INTEGER;
         i_na varchar2(500):='';
         i_cont_rows NUMBER:=0;
     BEGIN
@@ -260,22 +257,22 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
             i_headers := i_headers || rpad(p_heads(xc),20);
         END LOOP;
         DBMS_OUTPUT.PUT_LINE(i_headers);
-        cursor_name := dbms_sql.open_cursor;
-        sql_str := 'SELECT * FROM ' || p_name_table;
-        DBMS_SQL.PARSE(cursor_name, sql_str,
+        i_cursor := dbms_sql.open_cursor;
+        i_sql_str := 'SELECT * FROM ' || p_name_table;
+        DBMS_SQL.PARSE(i_cursor, i_sql_str,
                       DBMS_SQL.NATIVE);
-        rows_processed := DBMS_SQL.EXECUTE(cursor_name);
-        DBMS_SQL.DESCRIBE_COLUMNS(cursor_name, col_cnt, rec_tab);
+        i_rows:= DBMS_SQL.EXECUTE(i_cursor);
+        DBMS_SQL.DESCRIBE_COLUMNS(i_cursor, i_col_cnt, i_rec_tab);
         
-        FOR i IN 1..col_cnt
+        FOR i IN 1..i_col_cnt
         LOOP
-            DBMS_SQL.DEFINE_COLUMN(cursor_name, i, varvar, 500);
+            DBMS_SQL.DEFINE_COLUMN(i_cursor, i, i_varvar, 500);
         END LOOP;
         LOOP 
-            IF DBMS_SQL.FETCH_ROWS(cursor_name)>0 THEN
+            IF DBMS_SQL.FETCH_ROWS(i_cursor)>0 THEN
                 FOR i IN 1..p_num_col LOOP
-                    DBMS_SQL.COLUMN_VALUE(cursor_name, i, varvar);
-                    i_na := i_na || rpad(varvar,20);
+                    DBMS_SQL.COLUMN_VALUE(i_cursor, i, i_varvar);
+                    i_na := i_na || rpad(i_varvar,20);
                 END LOOP;
                 DBMS_OUTPUT.put_line(i_na);
                 i_cont_rows := i_cont_rows + 1;
@@ -284,11 +281,11 @@ CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS
                 EXIT; 
             END IF; 
         END LOOP; 
-        DBMS_SQL.CLOSE_CURSOR(cursor_name);
+        DBMS_SQL.CLOSE_CURSOR(i_cursor);
         DBMS_OUTPUT.PUT_LINE(CHR(10)||'Total de registros cargados exitosamente: ' || i_cont_rows);
     EXCEPTION
         WHEN OTHERS THEN 
             DBMS_OUTPUT.PUT_LINE('ERROR AL MOSTRAR LOS DATOS' || SQLERRM);
-            DBMS_SQL.CLOSE_CURSOR(cursor_name);
+            DBMS_SQL.CLOSE_CURSOR(i_cursor);
     END;
 END;

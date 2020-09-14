@@ -3,36 +3,36 @@ AS
     TYPE lista_type IS TABLE OF VARCHAR2(500);
     FUNCTION separate_words(p_word VARCHAR2, 
                             p_key VARCHAR2, 
-                            p_err_msg OUT VARCHAR2, 
-                            p_err_code OUT NUMBER) RETURN lista_type;
+                            x_err_msg OUT VARCHAR2, 
+                            x_err_code OUT NUMBER) RETURN lista_type;
                             
     PROCEDURE create_table(i_instrn VARCHAR2, 
                             table_name VARCHAR2, 
-                            p_err_msg OUT VARCHAR2, 
-                            p_err_code OUT NUMBER);
+                            x_err_msg OUT VARCHAR2, 
+                            x_err_code OUT NUMBER);
                             
-    FUNCTION get_headers_or_type(i_instrn VARCHAR2, 
-                                ncols OUT NUMBER, 
-                                vars NUMBER, 
-                                p_err_msg OUT VARCHAR2, 
-                                p_err_code OUT NUMBER) RETURN lista_type;
+    FUNCTION get_headers_or_type(p_instrn VARCHAR2, 
+                                p_ncols OUT NUMBER, 
+                                p_vars NUMBER, 
+                                x_err_msg OUT VARCHAR2, 
+                                x_err_code OUT NUMBER) RETURN lista_type;
                                 
     PROCEDURE insert_row(p_word VARCHAR2, 
-                        headers lista_type, 
-                        tab_name VARCHAR2, 
-                        i_file VARCHAR2, 
-                        i_cols NUMBER, 
-                        p_err_msg OUT VARCHAR2, 
-                        p_err_code OUT NUMBER, 
-                        idx_col NUMBER,
-                        types_data lista_type);
+                        p_headers lista_type, 
+                        p_tab_name VARCHAR2, 
+                        p_file VARCHAR2, 
+                        p_cols NUMBER, 
+                        x_err_msg OUT VARCHAR2, 
+                        x_err_code OUT NUMBER, 
+                        p_idx_col NUMBER,
+                        p_types_data lista_type);
 
     PROCEDURE print_report(p_title VARCHAR2,
                                 p_heads lista_type,
                                 p_num_col NUMBER,
                                 p_name_table VARCHAR2, 
-                                xx_err_msg OUT VARCHAR2, 
-                                xx_err_code OUT NUMBER);
+                                x_err_msg OUT VARCHAR2, 
+                                x_err_code OUT NUMBER);
 END;
 
 CREATE OR REPLACE PACKAGE BODY xxeks_upload_info_pkg AS

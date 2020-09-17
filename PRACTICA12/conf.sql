@@ -33,15 +33,15 @@ CREATE TABLE xxeks_empleados(  --contacto:8,12,
                         CONSTRAINT fk_direccion
                             FOREIGN KEY (direccion_id)
                             REFERENCES xxeks_direccion(direccion_id)
-                            ON DELETE CASCADE,
+                            ON DELETE SET NULL,
                         CONSTRAINT fk_contacto
                             FOREIGN KEY (contacto_id)
                             REFERENCES xxeks_empleados(empleado_id)
-                            ON DELETE CASCADE,
+                            ON DELETE SET NULL,
                         CONSTRAINT fk_manager
                             FOREIGN KEY (manager_id)
                             REFERENCES xxeks_empleados(empleado_id)
-                            ON DELETE CASCADE
+                            ON DELETE SET NULL
                         );
 
 CREATE TABLE xxeks_asignaciones(
@@ -49,11 +49,12 @@ CREATE TABLE xxeks_asignaciones(
                                     fecha_inicio DATE NOT NULL,
                                     fecha_fin DATE NOT NULL,
                                     descripcion VARCHAR(200) NOT NULL,
+                                    status NUMBER(1) NOT NULL,
                                     empleado_id NUMBER NOT NULL,
                                     CONSTRAINT fk_empleado
                                         FOREIGN KEY (empleado_id)
                                         REFERENCES xxeks_empleados(empleado_id)
-                                        ON DELETE SET NULL
+                                        ON DELETE CASCADE
                                 );
                                 
 CREATE TABLE xxeks_catalogos(

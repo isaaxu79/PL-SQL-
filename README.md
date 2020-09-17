@@ -1,1 +1,1 @@
-# Capacitacion PL-SQL
+# Curso PL-SQL

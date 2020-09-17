@@ -15,18 +15,18 @@ CREATE TABLE xxeks_direccion(
                             pais VARCHAR2(100) NOT NULL
                             );
 
-CREATE TABLE xxeks_empleados(
+CREATE TABLE xxeks_empleados(  --contacto:8,12,
                         empleado_id NUMBER PRIMARY KEY,
-                        nombre VARCHAR2(40) NOT NULL,
-                        apellido_m VARCHAR2(40) NOT NULL,
-                        apellido_p VARCHAR2(40) NOT NULL,
-                        edad NUMBER(2) NOT NULL,
-                        sexo CHAR(1) NOT NULL,
-                        telefono VARCHAR2(20) NOT NULL,
-                        salario NUMBER(10,2) NOT NULL,
-                        fecha_ingreso DATE NOT NULL,
-                        fecha_baja DATE NOT NULL,
-                        tipo VARCHAR2(40) NOT NULL,
+                        nombre VARCHAR2(40) NOT NULL, --
+                        apellido_m VARCHAR2(40) NOT NULL,--
+                        apellido_p VARCHAR2(40) NOT NULL,--
+                        edad NUMBER(2) NOT NULL,--
+                        sexo CHAR(1) NOT NULL,---
+                        telefono VARCHAR2(20) NOT NULL,--
+                        salario NUMBER(10,2), 
+                        fecha_ingreso DATE,
+                        fecha_baja DATE,
+                        tipo VARCHAR2(40) NOT NULL, --
                         contacto_id NUMBER,
                         manager_id NUMBER,
                         direccion_id NUMBER,
@@ -53,7 +53,7 @@ CREATE TABLE xxeks_asignaciones(
                                     CONSTRAINT fk_empleado
                                         FOREIGN KEY (empleado_id)
                                         REFERENCES xxeks_empleados(empleado_id)
-                                        ON DELETE CASCADE
+                                        ON DELETE SET NULL
                                 );
                                 
 CREATE TABLE xxeks_catalogos(
@@ -70,7 +70,8 @@ CREATE TABLE xxeks_auditoria(
                                 nombre_tabla VARCHAR2(100) NOT NULL,
                                 descripcion VARCHAR2(500) NOT NULL,
                                 fecha_modificacion TIMESTAMP NOT NULL,
-                                accion VARCHAR(10) NOT NULL
+                                accion VARCHAR(10) NOT NULL,
+                                usuario VARCHAR2(100) NOT NULL
                             );
 
 DROP SEQUENCE sq_xxeks_empleados;
@@ -147,26 +148,26 @@ ON xxeks_empleados
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_empleados',
                     'Se ha insertado un nuevo empleado: ' || :new.nombre || ' ' || :new.apellido_p || ', ' || :new.apellido_m || '.',
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'insert');
+                    CURRENT_TIMESTAMP,
+                    'insert', TO_CHAR(user));
     ELSIF DELETING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_empleados',
                     'Se ha elimidado al empleado: ' || :old.nombre || ' ' || :old.apellido_p || ', ' || :old.apellido_m || '.',
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'delete');
+                    CURRENT_TIMESTAMP,
+                    'delete',TO_CHAR(user));
     ELSIF UPDATING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_empleados',
                     'Se ha actualizado el' || :old.tipo || ' con el ID' || :old.empleado_id,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'update');
+                    CURRENT_TIMESTAMP,
+                    'update',TO_CHAR(user));
     END IF;
 END;
 
@@ -180,26 +181,26 @@ ON xxeks_direccion
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_direccion',
                     'Se ha insertado una nueva direccion: ' || :new.calle || ', ' || :new.colonia || ', ' || :new.estado || ', ' || :new.pais,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'insert');
+                    CURRENT_TIMESTAMP,
+                    'insert',TO_CHAR(user));
     ELSIF DELETING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_direccion',
                     'Se ha elimidado la direccion: ' || :old.calle || ', No.'|| :old.n_exterior || ' exterior, ' || :old.colonia || ', ' || :old.codigo_postal || ', ' || :old.estado || ', ' || :old.pais,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'delete');
+                    CURRENT_TIMESTAMP,
+                    'delete',TO_CHAR(user));
     ELSIF UPDATING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_direccion',
                     'Se ha actualizado la direccion con id: ' || :old.direccion_id,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'update');
+                    CURRENT_TIMESTAMP,
+                    'update',TO_CHAR(user));
     END IF;
 END;
 
@@ -213,26 +214,26 @@ ON xxeks_asignaciones
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_asignaciones',
                     'Se ha insertado un nueva asignacion: ' || :new.descripcion || ' con fecha de ' || :new.fecha_inicio || ' al ' || :new.fecha_fin || '.',
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'insert');
+                    CURRENT_TIMESTAMP,
+                    'insert',TO_CHAR(user));
     ELSIF DELETING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_asignaciones',
                     'Se ha elimidado la asignacion: '  || :old.descripcion || ' con fecha de ' || :old.fecha_inicio || ' al ' || :old.fecha_fin || '.',
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'delete');
+                    CURRENT_TIMESTAMP,
+                    'delete',TO_CHAR(user));
     ELSIF UPDATING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_asignaciones',
                     'Se ha actualizado la asignacion con el ID' || :old.asignacion_id,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'update');
+                    CURRENT_TIMESTAMP,
+                    'update',TO_CHAR(user));
     END IF;
 END;
 
@@ -246,25 +247,25 @@ ON xxeks_catalogos
 FOR EACH ROW
 BEGIN
     IF INSERTING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion, accion,usuario)
             VALUES (
                     'xxeks_catalogos',
                     'Se ha insertado un nuevo catalogo: ' || :new.nombre || ', ' || :new.codigo || ', ' || :new.valor || ', ' || :new.descripcion,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'insert');
+                    CURRENT_TIMESTAMP,
+                    'insert',TO_CHAR(user));
     ELSIF DELETING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_catalogos',
                     'Se ha elimidado un catalogo: ' || :old.nombre || ', ' || :old.codigo || ', ' || :old.valor || ', ' || :old.descripcion,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'delete');
+                    CURRENT_TIMESTAMP,
+                    'delete',TO_CHAR(user));
     ELSIF UPDATING THEN
-        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion)
+        INSERT INTO xxeks_auditoria(nombre_tabla,descripcion,fecha_modificacion,accion,usuario)
             VALUES (
                     'xxeks_catalogos',
                     'Se ha actualizado el catalogo con id: ' || :old.catalogo_id,
-                    TO_TIMESTAMP(sysdate, 'YYYY-MM-DD HH24:MI:SS'),
-                    'update');
+                    CURRENT_TIMESTAMP,
+                    'update',TO_CHAR(user));
     END IF;
 END;

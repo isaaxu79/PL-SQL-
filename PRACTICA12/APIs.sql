@@ -148,9 +148,29 @@ AS
     PROCEDURE crear_asignacion(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2) AS
         i_id_empleado NUMBER;
     BEGIN
-        DBMS_OUTPUT.PUT_LINE('');
+        p_err_code:=-1;
+        SELECT empleado_id INTO i_id_empleado
+            FROM xxeks_empleados
+            WHERE nombre = p_data(4) and apellido_p=p_data(5) and apellido_m=p_data(6) and tipo <> 'contacto';
+        p_err_code:=-2;
+        UPDATE xxeks_asignaciones
+            SET status = 0
+            WHERE empleado_id = i_id_empleado;
+        p_err_code:=-3;
+        INSERT INTO xxeks_asignaciones(fecha_inicio,fecha_fin,descripcion,status,empleado_id) 
+            VALUES (TO_DATE(p_data(1),'dd-mm-yy'), TO_DATE(p_data(2),'dd-mm-yy'),p_data(3),1,i_id_empleado);
+        COMMIT;
+        p_err_code:=1;
+        p_err_msg:='Asignacion creada sin errores';
     EXCEPTION
-        WHEN OTHER THEN
-            DBMS_OUTPUT.PUT_LINE('');
+        WHEN OTHERS THEN
+            ROLLBACK;
+            IF p_err_code = -1 THEN
+                p_err_msg:='error al buscar el empleado, deshaciendo cambios';
+            ELSIF p_err_code = -2 THEN
+                p_err_msg:='error al actualizar lo registros de asignacion, deshaciendo cambios';
+            ELSIF p_err_code = -3 THEN
+                p_err_msg:='error al guardar asignacion, deshaciendo cambios';
+            END IF;
     END;
 END;

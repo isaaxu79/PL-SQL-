@@ -59,9 +59,20 @@ END;
 DECLARE
     asd xxeks_nomina_pkg.lista_type;
     i_data VARCHAR(500):= :p_params;
+    i_err_code NUMBER:=1;
+    i_err_msg VARCHAR2(100):='';
 BEGIN
     asd := xxeks_nomina_pkg.separate_words(i_data,',',i_err_msg,i_err_code);
-    
+    IF i_err_code > 0 THEN 
+        xxeks_nomina_pkg.crear_asignacion(asd,i_err_code,i_err_msg);
+        IF i_err_code > 0 THEN
+            DBMS_OUTPUT.PUT_LINE(i_err_msg);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(i_err_msg);
+        END IF;
+    ELSE
+        DBMS_OUTPUT.PUT_LINE(i_err_msg);
+    END IF;
 EXCEPTION
     WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('HA OCURRIDO UNA ERROR INTERNO POR FAVOR CONTACTA AL ADMIN');
 END;

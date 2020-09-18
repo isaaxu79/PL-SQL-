@@ -11,6 +11,12 @@ AS
     PROCEDURE asignar_manager(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
     
     PROCEDURE crear_asignacion(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
+    
+    PROCEDURE delete_data_empl(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
+    
+    PROCEDURE massive_upload_dirs;
+    
+    PROCEDURE massive_upload_ctlg;
 END;
 
 CREATE OR REPLACE PACKAGE BODY xxeks_nomina_pkg
@@ -172,5 +178,54 @@ AS
             ELSIF p_err_code = -3 THEN
                 p_err_msg:='error al guardar asignacion, deshaciendo cambios';
             END IF;
+    END;
+
+    PROCEDURE delete_data_empl(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2) AS
+    i_id_emp NUMBER;
+    i_id_dir NUMBER;
+    i_id_cont NUMBER;
+    BEGIN
+        p_err_code := -1;
+        SELECT empleado_id, direccion_id, contacto_id
+        INTO i_id_emp, i_id_dir, i_id_cont
+        FROM xxeks_empleados
+        WHERE nombre = p_data(1) AND apellido_p = p_data(2) AND apellido_m = p_data(3);
+        p_err_code := -2;
+        DELETE FROM xxeks_empleados WHERE empleado_id = i_id_emp;
+        p_err_code := -3;
+        DELETE FROM xxeks_empleados WHERE empleado_id = i_id_cont;
+        p_err_code := -4;
+        DELETE FROM xxeks_direccion WHERE direccion_id = i_id_dir;
+        COMMIT;
+        p_err_code := 1;
+        p_err_msg :='empleado eliminado sin problemas';
+    EXCEPTION
+        WHEN OTHERS THEN 
+            ROLLBACK;
+            IF p_err_code = -1 THEN
+                p_err_msg:='error al buscar el empleado, deshaciendo cambios';
+            ELSIF p_err_code = -2 THEN
+                p_err_msg:='error al eliminar el empleado, deshaciendo cambios';
+            ELSIF p_err_code = -3 THEN
+                p_err_msg:='error al eliminar el contacto, deshaciendo cambios';
+            ELSIF p_err_code = -4 THEN
+                p_err_msg:='error al eliminar la direccion, deshaciendo cambios';
+            END IF;
+    END;
+    
+    PROCEDURE massive_upload_dirs AS
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('');
+    EXCEPTION
+        WHEN OTHERS THEN 
+            DBMS_OUTPUT.PUT_LINE('');
+    END;
+    
+    PROCEDURE massive_upload_ctlg AS
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('');
+    EXCEPTION
+        WHEN OTHERS THEN 
+            DBMS_OUTPUT.PUT_LINE('');
     END;
 END;

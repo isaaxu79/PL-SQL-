@@ -6,6 +6,7 @@ select user from dual;
 delete from xxeks_empleados where empleado_id = 2;
 ROLLBACK;
 select * from xxeks_empleados;
+select * from xxeks_catalogos;
 select * from xxeks_asignaciones;emmp 6,emp 5, dir 3
 UPDATE xxeks_empleados
 set nombre = 'leo'

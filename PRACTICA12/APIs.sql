@@ -17,6 +17,8 @@ AS
     PROCEDURE massive_upload_dirs(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
     
     PROCEDURE massive_upload_ctlg(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
+    
+    PROCEDURE massive_upload_emp_asig(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
 END;
 
 CREATE OR REPLACE PACKAGE BODY xxeks_nomina_pkg
@@ -232,6 +234,7 @@ AS
                     END;
                 ELSE
                     p_err_code:=-2;
+                    p_err_msg:='error al insertar'
                 END IF;
             EXCEPTION
                 WHEN NO_DATA_FOUND THEN 
@@ -259,9 +262,13 @@ AS
                 UTL_FILE.GET_LINE(out_File,conten);
                 asd := separate_words(conten,',',p_err_msg,p_err_code);
                 IF p_err_code > 0 AND asd.LAST=5 THEN
+                    DBMS_OUTPUT.PUT_LINE('**');
                     BEGIN
-                        INSERT INTO xxeks_catalogo(nombre,codigo,valor,descripcion,activo)
+                        DBMS_OUTPUT.PUT_LINE('-----');
+                        INSERT INTO xxeks_catalogos(nombre,codigo,valor,descripcion,activo)
                         VALUES (asd(1),TO_NUMBER(asd(2)),asd(3),asd(4),TO_NUMBER(asd(5)));
+                        p_err_code :=1;
+                        p_err_msg:='carga sin problemas';
                     EXCEPTION
                         WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('UN DATO NO PUDO SER INSERTADO');
                     END;
@@ -278,8 +285,88 @@ AS
             END;
         END LOOP;
         UTL_FILE.FCLOSE(out_File);
+        
     EXCEPTION
         WHEN OTHERS THEN 
             DBMS_OUTPUT.PUT_LINE('nnn');
+    END;
+
+    PROCEDURE massive_upload_emp_asig(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2)
+    AS
+        i_id_empleado NUMBER;
+        out_File UTL_FILE.FILE_TYPE;
+        asd xxeks_nomina_pkg.lista_type;
+        conten VARCHAR2(1000);
+    BEGIN
+        out_File := UTL_FILE.FOPEN (p_dir, p_name_file, 'R');
+            LOOP
+            BEGIN
+                UTL_FILE.GET_LINE(out_File,conten);
+                asd := separate_words(conten,',',p_err_msg,p_err_code);
+                IF p_err_code > 0 THEN
+                   BEGIN
+                        SELECT empleado_id INTO i_id_empleado
+                        FROM xxeks_empleados
+                        WHERE nombre = asd(1) and apellido_p=asd(2) and apellido_m=asd(3);  
+                    EXCEPTION
+                        WHEN OTHERS THEN
+                            i_id_empleado:=0;
+                            DBMS_OUTPUT.PUT_LINE('USUARIO no EXISTE, AÑADIENDO ASIGNACION');
+                    END;
+                    IF i_id_empleado = 0 then
+                        DBMS_OUTPUT.PUT_LINE('creando');
+                        p_err_code := -3;
+                        INSERT INTO xxeks_empleados(nombre,apellido_p,apellido_m,
+                                                    edad,sexo,telefono,salario,
+                                                    fecha_ingreso,fecha_baja,tipo,
+                                                    contacto_id,manager_id,direccion_id)
+                        VALUES(asd(1),asd(2),asd(3),TO_NUMBER(asd(4)),asd(5),asd(6),
+                                TO_NUMBER(asd(7)),TO_DATE(asd(8),'DD-MM-YY'),
+                                TO_DATE(asd(9),'DD-MM-YY'),asd(10),NULL,NULL,NULL);
+                        i_id_empleado:= sq_xxeks_empleados.currval;
+                        p_err_code := -4;
+                        UPDATE xxeks_asignaciones
+                            SET status = 0
+                            WHERE empleado_id = i_id_empleado;
+                        p_err_code := -5;
+                        INSERT INTO xxeks_asignaciones(fecha_inicio,fecha_fin,descripcion,status,empleado_id) 
+                            VALUES (TO_DATE(asd(11),'dd-mm-yy'), TO_DATE(asd(12),'dd-mm-yy'),asd(13),1,i_id_empleado);
+                        commit;
+                    ELSE
+                        DBMS_OUTPUT.PUT_LINE('añadiendo');
+                        p_err_code := -4;
+                        UPDATE xxeks_asignaciones
+                            SET status = 0
+                            WHERE empleado_id = i_id_empleado;
+                        p_err_code := -5;
+                        INSERT INTO xxeks_asignaciones(fecha_inicio,fecha_fin,descripcion,status,empleado_id) 
+                            VALUES (TO_DATE(asd(11),'dd-mm-yy'), TO_DATE(asd(12),'dd-mm-yy'),asd(13),1,i_id_empleado);
+                        commit;
+                    END IF;
+                ELSE
+                    p_err_code:=-2;
+                END IF;
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN 
+                    UTL_FILE.FCLOSE(out_File);
+                    EXIT;
+                WHEN OTHERS THEN
+                    p_err_code:=-1;
+                    p_err_msg:='error al abrir el archivo';
+            END;
+        END LOOP;
+        UTL_FILE.FCLOSE(out_File);
+        p_err_code := 1;
+        p_err_msg:='carga sin problemas';
+    EXCEPTION
+        WHEN OTHERS THEN 
+            ROLLBACK;
+            IF p_err_code = -3 THEN
+                p_err_msg:='error al insertar el empleado, deshaciendo cambios';
+            ELSIF p_err_code = -4 THEN
+                p_err_msg:='error al actualizar asignaciones, deshaciendo cambios';
+            ELSIF p_err_code = -5 THEN
+                p_err_msg:='error al insertar asignaciones, deshaciendo cambios';
+            END IF;
     END;
 END;

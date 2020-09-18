@@ -108,7 +108,30 @@ END;
 **  nombre del archivo 
 */
 
+DECLARE
+    i_file VARCHAR(500):= :p_params;
+    i_directorio VARCHAR(500):= :p_params;
+    i_err_code NUMBER:=1;
+    i_err_msg VARCHAR2(100):='';
+BEGIN
+    xxeks_nomina_pkg.massive_upload_dirs(i_file,i_directorio,i_err_code,i_err_msg);
+    DBMS_OUTPUT.PUT_LINE(i_err_msg);
+EXCEPTION
+    WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('HA OCURRIDO UNA ERROR INTERNO POR FAVOR CONTACTA AL ADMIN');
+END;
+
 /*
 **  Carga masiva de catalogos
 **  nombre del archivo 
 */
+
+DECLARE
+    i_data VARCHAR(500):= :p_params;
+    i_err_code NUMBER:=1;
+    i_err_msg VARCHAR2(100):='';
+BEGIN
+    xxeks_nomina_pkg.massive_upload_dirs(i_data,'XXEKS_TMP',i_err_code,i_err_msg);
+    DBMS_OUTPUT.PUT_LINE(i_err_msg);
+EXCEPTION
+    WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('HA OCURRIDO UNA ERROR INTERNO POR FAVOR CONTACTA AL ADMIN');
+END;

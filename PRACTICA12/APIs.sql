@@ -14,9 +14,9 @@ AS
     
     PROCEDURE delete_data_empl(p_data lista_type, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
     
-    PROCEDURE massive_upload_dirs;
+    PROCEDURE massive_upload_dirs(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
     
-    PROCEDURE massive_upload_ctlg;
+    PROCEDURE massive_upload_ctlg(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2);
 END;
 
 CREATE OR REPLACE PACKAGE BODY xxeks_nomina_pkg
@@ -213,19 +213,73 @@ AS
             END IF;
     END;
     
-    PROCEDURE massive_upload_dirs AS
+    PROCEDURE massive_upload_dirs(p_name_file VARCHAR2, p_dir VARCHAR2, p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2) AS
+        out_File UTL_FILE.FILE_TYPE;
+        asd xxeks_nomina_pkg.lista_type;
+        conten VARCHAR2(1000);
     BEGIN
-        DBMS_OUTPUT.PUT_LINE('');
+        out_File := UTL_FILE.FOPEN (p_dir, p_name_file, 'R');
+            LOOP
+            BEGIN
+                UTL_FILE.GET_LINE(out_File,conten);
+                asd := separate_words(conten,',',p_err_msg,p_err_code);
+                IF p_err_code > 0 AND asd.LAST=7 THEN
+                    BEGIN
+                        INSERT INTO xxeks_direccion(calle,codigo_postal,n_interior,n_exterior,colonia,estado,pais)
+                        VALUES (asd(1),TO_NUMBER(asd(2)),TO_NUMBER(asd(3)),TO_NUMBER(asd(4)),asd(5),asd(6),asd(7));
+                    EXCEPTION
+                        WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('UN DATO NO PUDO SER INSERTADO');
+                    END;
+                ELSE
+                    p_err_code:=-2;
+                END IF;
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN 
+                    UTL_FILE.FCLOSE(out_File);
+                    EXIT;
+                WHEN OTHERS THEN
+                    p_err_code:=-1;
+                    p_err_msg:='error al abrir el archivo';
+            END;
+        END LOOP;
+        UTL_FILE.FCLOSE(out_File);
     EXCEPTION
         WHEN OTHERS THEN 
-            DBMS_OUTPUT.PUT_LINE('');
+            DBMS_OUTPUT.PUT_LINE('error ' || SQLERRM );
     END;
     
-    PROCEDURE massive_upload_ctlg AS
+    PROCEDURE massive_upload_ctlg(p_name_file VARCHAR2, p_dir VARCHAR2,p_err_code OUT NUMBER, p_err_msg OUT VARCHAR2) AS
+        out_File UTL_FILE.FILE_TYPE;
+        asd xxeks_nomina_pkg.lista_type;
+        conten VARCHAR2(1000);
     BEGIN
-        DBMS_OUTPUT.PUT_LINE('');
+        out_File := UTL_FILE.FOPEN (p_dir, p_name_file, 'R');
+            LOOP
+            BEGIN
+                UTL_FILE.GET_LINE(out_File,conten);
+                asd := separate_words(conten,',',p_err_msg,p_err_code);
+                IF p_err_code > 0 AND asd.LAST=5 THEN
+                    BEGIN
+                        INSERT INTO xxeks_catalogo(nombre,codigo,valor,descripcion,activo)
+                        VALUES (asd(1),TO_NUMBER(asd(2)),asd(3),asd(4),TO_NUMBER(asd(5)));
+                    EXCEPTION
+                        WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('UN DATO NO PUDO SER INSERTADO');
+                    END;
+                ELSE
+                    p_err_code:=-2;
+                END IF;
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN 
+                    UTL_FILE.FCLOSE(out_File);
+                    EXIT;
+                WHEN OTHERS THEN
+                    p_err_code:=-1;
+                    p_err_msg:='error al abrir el archivo';
+            END;
+        END LOOP;
+        UTL_FILE.FCLOSE(out_File);
     EXCEPTION
         WHEN OTHERS THEN 
-            DBMS_OUTPUT.PUT_LINE('');
+            DBMS_OUTPUT.PUT_LINE('nnn');
     END;
 END;

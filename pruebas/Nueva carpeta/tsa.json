@@ -1,0 +1,66 @@
+{
+    "SupplierSite": "Site_31031992",
+    "ProcurementBU": "HDI",
+    "SitePurposePurchasingFlag": true,
+    "SitePurposePrimaryPayFlag": true,
+    "SupplierAddressName": "addres test",
+    "SitePurposePayFlag": true,
+    "DFF": [
+        {
+            "numeroDeProveedorLider": "asdasd",
+            "folioDelPerfil": null,
+            "oficina": null,
+            "sucursal": null,
+            "descripcion": null,
+            "tipoDePerfil": null,
+            "estatus": null,
+            "esPrincipal": null,
+            "canalDeDistribucion": null,
+            "ubicacionGeografica": null,
+            "modeloDeNegocio": null,
+            "actividadOGiro": null
+        },
+        {
+            "numeroDeProveedorLider": "09876",
+            "folioDelPerfil": null,
+            "oficina": null,
+            "sucursal": null,
+            "descripcion": null,
+            "tipoDePerfil": null,
+            "estatus": null,
+            "esPrincipal": null,
+            "canalDeDistribucion": null,
+            "ubicacionGeografica": null,
+            "modeloDeNegocio": null,
+            "actividadOGiro": null
+        },
+        {
+            "numeroDeProveedorLider": "12345",
+            "folioDelPerfil": null,
+            "oficina": null,
+            "sucursal": null,
+            "descripcion": null,
+            "tipoDePerfil": null,
+            "estatus": null,
+            "esPrincipal": null,
+            "canalDeDistribucion": null,
+            "ubicacionGeografica": null,
+            "modeloDeNegocio": null,
+            "actividadOGiro": null
+        }
+    ],
+    "assignments": [
+        {
+            "ClientBU": "HDI",
+            "BillToBU": "HDI",
+            "LiabilityDistribution": "",
+            "InactiveDate": ""
+        },
+        {
+            "ClientBU": "EKS",
+            "BillToBU": "EKS",
+            "LiabilityDistribution": "",
+            "InactiveDate": ""
+        }
+    ]
+}

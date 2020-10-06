@@ -1,0 +1,5 @@
+isaac,vasquez,marin,22,H,98882212,1200,12-12-12,12-12-12,empleado,22-10-12,23-10-12,cursos para aprender
+isaac,vasquez,marin,22,H,98882212,1200,12-12-12,12-12-12,empleado,23-10-12,24-10-12,cursos para aprender
+isaac,vasquez,marin,22,H,98882212,1200,12-12-12,12-12-12,empleado,24-10-12,25-10-12,cursos para aprender
+leo,vasquez,marin,22,H,98882212,1200,12-12-12,12-12-12,empleado,26-10-12,27-10-12,cursos para aprender
+leo,vasquez,marin,22,H,98882212,1200,12-12-12,12-12-12,empleado,22-10-12,23-10-12,cursos para aprender

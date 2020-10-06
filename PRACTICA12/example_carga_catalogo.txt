@@ -1,0 +1,3 @@
+estado,1,edo,abreviacion,1
+hombre,1,h,abreviacion,1
+Mujer,1,m,abreviacion,1

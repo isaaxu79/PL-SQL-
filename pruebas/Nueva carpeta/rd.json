@@ -1,0 +1,56 @@
+{
+    "type": "Campaign",
+    "currentStatus": "Active",
+    "id": "206",
+    "createdAt": "1488438112",
+    "createdBy": "370",
+    "depth": "complete",
+    "folderId": "1428",
+    "name": "Car Loan",
+    "elements": [
+        {
+            "type": "CampaignAddToProgramBuilderAction",
+            "id": "1197",
+            "name": "Create Lead",
+            "memberCount": "0"
+        }
+    ],
+    "isReadOnly": "false",
+    "runAsUserId": "372",
+    "actualCost": "2500.00",
+    "budgetedCost": "0.00",
+    "campaignCategory": "contact",
+    "campaignType": "GB",
+    "crmId": "",
+    "endAt": "1496289599",
+    "fieldValues": [
+        {
+            "type": "FieldValue",
+            "id": "8",
+            "value": "test"
+        },
+        {
+            "type": "FieldValue",
+            "id": "9",
+            "value": "APAC"
+        },
+        {
+            "type": "FieldValue",
+            "id": "11",
+            "value": ""
+        },
+        {
+            "type": "FieldValue",
+            "id": "12",
+            "value": "Direct Mail Campaigns"
+        },
+        {
+            "type": "FieldValue",
+            "id": "13",
+            "value": ""
+        }
+    ],
+    "firstActivation": "1488439250",
+    "isEmailMarketingCampaign": "false",
+    "isIncludedInROI": "true"
+}
